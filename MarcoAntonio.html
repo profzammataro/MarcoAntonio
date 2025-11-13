@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>La Gara di Marco Antonio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getDatabase, ref, set, onValue, update } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js';
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAxqgScWEda7AoGWxWkFBCgVFjDvMks5SU",
+            authDomain: "ombrelloni-ee9aa.firebaseapp.com",
+            databaseURL: "https://ombrelloni-ee9aa-default-rtdb.europe-west1.firebasedatabase.app",
+            projectId: "ombrelloni-ee9aa",
+            storageBucket: "ombrelloni-ee9aa.firebasestorage.app",
+            messagingSenderId: "781899782985",
+            appId: "1:781899782985:web:0cb3c1c67cc57ddd9c1898"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+
+        const questions = [
+            {
+                question: "In che anno nacque Marco Antonio?",
+                answers: ["83 a.C.", "70 a.C.", "95 a.C.", "100 a.C."],
+                correct: 0
+            },
+            {
+                question: "Quale triumvirato formò Marco Antonio?",
+                answers: ["Primo Triumvirato", "Secondo Triumvirato", "Triumvirato Consolare", "Triumvirato Militare"],
+                correct: 1
+            },
+            {
+                question: "Con chi condivise il potere nel Secondo Triumvirato?",
+                answers: ["Cesare e Pompeo", "Ottaviano e Lepido", "Crasso e Cesare", "Bruto e Cassio"],
+                correct: 1
+            },
+            {
+                question: "In quale battaglia famosa morì Marco Antonio?",
+                answers: ["Battaglia di Farsalo", "Battaglia di Filippi", "Battaglia di Azio", "Battaglia di Alesia"],
+                correct: 2
+            },
+            {
+                question: "Chi era Cleopatra?",
+                answers: ["Regina d'Egitto", "Regina di Roma", "Regina di Cartagine", "Regina di Persia"],
+                correct: 0
+            },
+            {
+                question: "Quante volte si sposò Marco Antonio?",
+                answers: ["2 volte", "3 volte", "4 volte", "5 volte"],
+                correct: 3
+            },
+            {
+                question: "Chi sconfisse Marco Antonio nella battaglia di Azio?",
+                answers: ["Giulio Cesare", "Ottaviano", "Pompeo", "Crasso"],
+                correct: 1
+            },
+            {
+                question: "Quale cognomen venne dato a Ottaviano dopo la vittoria su Marco Antonio?",
+                answers: ["Imperator", "Augustus", "Caesar", "Maximus"],
+                correct: 1
+            },
+            {
+                question: "Come morì Marco Antonio?",
+                answers: ["In battaglia", "Suicidio con la spada", "Avvelenamento", "Per malattia"],
+                correct: 1
+            },
+            {
+                question: "In quale città morì Marco Antonio?",
+                answers: ["Roma", "Atene", "Alessandria d'Egitto", "Cartagine"],
+                correct: 2
+            }
+        ];
+
+        const teams = ['Squadra 1', 'Squadra 2', 'Squadra 3'];
+        const teamColors = ['#e74c3c', '#3498db', '#2ecc71'];
+
+        let gameState = {
+            state: 'start',
+            currentObstacle: 0,
+            scores: { team1: 0, team2: 0, team3: 0 },
+            teamAnswers: { team1: null, team2: null, team3: null },
+            showQuestion: false,
+            horsePosition: 0
+        };
+
+        function render() {
+            const app = document.getElementById('app');
+            
+            if (gameState.state === 'start') {
+                app.innerHTML = `
+                    <div class="min-h-screen bg-gradient-to-b from-amber-900 to-amber-700 flex items-center justify-center p-4">
+                        <div class="bg-white rounded-lg shadow-2xl p-8 max-w-md w-full text-center">
+                            <h1 class="text-4xl font-bold text-amber-900 mb-4">🏛️ La Gara di Marco Antonio</h1>
+                            <p class="text-gray-700 mb-6">Tre squadre si sfidano rispondendo a domande sul grande generale romano, marito di Cleopatra!</p>
+                            <button onclick="startGame()" class="bg-amber-600 hover:bg-amber-700 text-white font-bold py-3 px-8 rounded-lg text-xl transition">
+                                Inizia la Gara
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else if (gameState.state === 'finished') {
+                const rankings = [
+                    { team: 'Squadra 1', score: gameState.scores.team1 },
+                    { team: 'Squadra 2', score: gameState.scores.team2 },
+                    { team: 'Squadra 3', score: gameState.scores.team3 }
+                ].sort((a, b) => b.score - a.score);
+
+                app.innerHTML = `
+                    <div class="min-h-screen bg-gradient-to-b from-purple-900 to-purple-700 flex items-center justify-center p-4">
+                        <div class="bg-white rounded-lg shadow-2xl p-8 max-w-2xl w-full">
+                            <h1 class="text-4xl font-bold text-purple-900 mb-8 text-center">🏆 Risultati Finali</h1>
+                            
+                            <div class="space-y-4 mb-8">
+                                ${rankings.map((item, index) => `
+                                    <div class="flex items-center justify-between p-4 bg-gray-100 rounded-lg">
+                                        <div class="flex items-center gap-4">
+                                            <span class="text-3xl font-bold text-gray-500">#${index + 1}</span>
+                                            <span class="text-xl font-semibold">${item.team}</span>
+                                        </div>
+                                        <span class="text-2xl font-bold text-purple-700">${item.score} punti</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+
+                            <div class="bg-gradient-to-r from-yellow-400 to-yellow-600 p-6 rounded-lg text-center mb-6">
+                                <h2 class="text-3xl font-bold text-white mb-2">🎉 Vincitore 🎉</h2>
+                                <p class="text-4xl font-bold text-white">${rankings[0].team}</p>
+                            </div>
+
+                            <button onclick="resetGame()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-8 rounded-lg text-xl transition">
+                                Nuova Gara
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } else {
+                const currentQuestion = questions[gameState.currentObstacle];
+                
+                app.innerHTML = `
+                    <div class="min-h-screen bg-gradient-to-b from-blue-900 to-blue-700 p-4">
+                        <!-- Header con punteggi -->
+                        <div class="max-w-6xl mx-auto mb-6">
+                            <div class="grid grid-cols-3 gap-4">
+                                ${teams.map((team, index) => `
+                                    <div class="bg-white rounded-lg shadow-lg p-4 text-center" style="border-top: 4px solid ${teamColors[index]}">
+                                        <h3 class="font-bold text-lg mb-2">${team}</h3>
+                                        <p class="text-3xl font-bold" style="color: ${teamColors[index]}">${gameState.scores[`team${index + 1}`]} pts</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+
+                        <!-- Percorso -->
+                        <div class="max-w-6xl mx-auto bg-green-800 rounded-lg shadow-2xl p-8 mb-6 relative overflow-hidden" style="min-height: 400px">
+                            <div class="relative h-64">
+                                <div class="absolute inset-0 flex items-center">
+                                    <div class="w-full h-2 bg-amber-600 rounded"></div>
+                                </div>
+                                
+                                <!-- Ostacoli -->
+                                ${[...Array(10)].map((_, index) => `
+                                    <div class="absolute flex flex-col items-center" style="left: ${(index / 9) * 90 + 5}%; top: 50%; transform: translateY(-50%)">
+                                        <div class="w-8 h-16 ${index <= gameState.currentObstacle ? 'bg-gray-400' : 'bg-red-700'} rounded mb-2 flex items-center justify-center text-white font-bold">
+                                            ${index + 1}
+                                        </div>
+                                    </div>
+                                `).join('')}
+
+                                <!-- Marco Antonio a cavallo -->
+                                <div class="absolute transition-all duration-1000 ease-in-out text-6xl" style="left: ${gameState.horsePosition}%; top: 50%; transform: translateY(-50%)">
+                                    🏇
+                                </div>
+                            </div>
+
+                            <div class="text-center mt-8">
+                                <p class="text-white text-2xl font-bold mb-4">Ostacolo ${gameState.currentObstacle + 1} di 10</p>
+                                ${!gameState.showQuestion ? `
+                                    <button onclick="showQuestionModal()" class="bg-yellow-500 hover:bg-yellow-600 text-black font-bold py-3 px-8 rounded-lg text-xl transition">
+                                        Mostra Domanda
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </div>
+
+                        <!-- Domanda -->
+                        ${gameState.showQuestion ? `
+                            <div class="max-w-6xl mx-auto bg-white rounded-lg shadow-2xl p-8">
+                                <h2 class="text-2xl font-bold text-center mb-6 text-amber-900">
+                                    ${currentQuestion.question}
+                                </h2>
+
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                                    ${teams.map((team, teamIndex) => `
+                                        <div class="border-2 rounded-lg p-4" style="border-color: ${teamColors[teamIndex]}">
+                                            <h3 class="font-bold text-lg mb-4 text-center" style="color: ${teamColors[teamIndex]}">${team}</h3>
+                                            <div class="space-y-2">
+                                                ${currentQuestion.answers.map((answer, answerIndex) => `
+                                                    <button
+                                                        onclick="submitAnswer(${teamIndex}, ${answerIndex})"
+                                                        ${gameState.teamAnswers[`team${teamIndex + 1}`] !== null ? 'disabled' : ''}
+                                                        class="w-full p-3 rounded-lg font-semibold transition ${
+                                                            gameState.teamAnswers[`team${teamIndex + 1}`] === answerIndex
+                                                                ? 'bg-amber-500 text-white'
+                                                                : 'bg-gray-100 hover:bg-gray-200'
+                                                        } ${gameState.teamAnswers[`team${teamIndex + 1}`] !== null ? 'cursor-not-allowed opacity-60' : ''}"
+                                                    >
+                                                        ${answer}
+                                                    </button>
+                                                `).join('')}
+                                            </div>
+                                            ${gameState.teamAnswers[`team${teamIndex + 1}`] !== null ? `
+                                                <p class="text-center mt-2 text-green-600 font-bold">✓ Risposta inviata</p>
+                                            ` : ''}
+                                        </div>
+                                    `).join('')}
+                                </div>
+
+                                ${gameState.teamAnswers.team1 !== null && gameState.teamAnswers.team2 !== null && gameState.teamAnswers.team3 !== null ? `
+                                    <div class="text-center">
+                                        <button onclick="checkAnswers()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-4 px-12 rounded-lg text-xl transition">
+                                            Verifica Risposte e Prosegui
+                                        </button>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+        }
+
+        window.startGame = async function() {
+            await set(ref(database, 'marcoAntonioGame'), {
+                gameState: 'playing',
+                currentObstacle: 0,
+                scores: { team1: 0, team2: 0, team3: 0 },
+                teamAnswers: { team1: null, team2: null, team3: null },
+                showQuestion: false,
+                horsePosition: 0
+            });
+        };
+
+        window.showQuestionModal = async function() {
+            await update(ref(database, 'marcoAntonioGame'), {
+                showQuestion: true,
+                teamAnswers: { team1: null, team2: null, team3: null }
+            });
+        };
+
+        window.submitAnswer = async function(teamIndex, answerIndex) {
+            const teamKey = `team${teamIndex + 1}`;
+            await update(ref(database, 'marcoAntonioGame/teamAnswers'), {
+                [teamKey]: answerIndex
+            });
+        };
+
+        window.checkAnswers = async function() {
+            const correctAnswer = questions[gameState.currentObstacle].correct;
+            const newScores = { ...gameState.scores };
+            
+            if (gameState.teamAnswers.team1 === correctAnswer) newScores.team1 += 10;
+            if (gameState.teamAnswers.team2 === correctAnswer) newScores.team2 += 10;
+            if (gameState.teamAnswers.team3 === correctAnswer) newScores.team3 += 10;
+
+            const newPosition = gameState.currentObstacle + 1;
+            const newHorsePosition = (newPosition / 10) * 100;
+
+            if (newPosition >= 10) {
+                await update(ref(database, 'marcoAntonioGame'), {
+                    gameState: 'finished',
+                    scores: newScores,
+                    showQuestion: false,
+                    horsePosition: 100
+                });
+            } else {
+                await update(ref(database, 'marcoAntonioGame'), {
+                    currentObstacle: newPosition,
+                    scores: newScores,
+                    showQuestion: false,
+                    teamAnswers: { team1: null, team2: null, team3: null },
+                    horsePosition: newHorsePosition
+                });
+            }
+        };
+
+        window.resetGame = async function() {
+            await set(ref(database, 'marcoAntonioGame'), {
+                gameState: 'start',
+                currentObstacle: 0,
+                scores: { team1: 0, team2: 0, team3: 0 },
+                teamAnswers: { team1: null, team2: null, team3: null },
+                showQuestion: false,
+                horsePosition: 0
+            });
+        };
+
+        // Listener Firebase
+        const gameRef = ref(database, 'marcoAntonioGame');
+        onValue(gameRef, (snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                gameState = {
+                    state: data.gameState || 'start',
+                    currentObstacle: data.currentObstacle || 0,
+                    scores: data.scores || { team1: 0, team2: 0, team3: 0 },
+                    teamAnswers: data.teamAnswers || { team1: null, team2: null, team3: null },
+                    showQuestion: data.showQuestion || false,
+                    horsePosition: data.horsePosition || 0
+                };
+                render();
+            } else {
+                render();
+            }
+        });
+
+        // Render iniziale
+        document.addEventListener('DOMContentLoaded', render);
+    </script>
+</head>
+<body>
+    <div id="app"></div>
+</body>
+</html>
