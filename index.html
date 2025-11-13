@@ -29,34 +29,34 @@
 
         const questions = [
             {
-                question: "In che anno nacque Marco Antonio?",
-                answers: ["83 a.C.", "70 a.C.", "95 a.C.", "100 a.C."],
+                question: "Quando e dove nasce e muore Marco Antonio?",
+                answers: ["Roma 24 gennaio 83 a.C. / Alessandria d'Egitto 1 agosto 30 a.C.", "Roma 14 gennaio 84 a.C. / Roma 1 luglio 30 a.C.", "Roma 14 gennaio 83 a.C. / Alessandria d'Egitto 1 agosto 30 a.C.", "Alessandria 14 gennaio 83 a.C. / Roma 1 agosto 30 a.C."],
+                correct: 2
+            },
+            {
+                question: "Con chi condivise il potere nel Secondo Triunvirato?",
+                answers: ["Cesare e Pompeo", "Ottaviano e Lepido", "Crasso e Cesare", "Bruto e Cassio"],
+                correct: 1
+            },
+            {
+                question: "Come si sono incontrati Marco Antonio e Cleopatra?",
+                answers: ["Si sono incontrati nel 41 a.C. a Tarso, in Cilicia, quando Marco Antonio era alla ricerca di aiuti per la sua campagna contro i Parti.", "Marco Antonio e Cleopatra si incontrano durante la battaglia di Azio nel 31 a.C.", "Cleopatra era una regina romana e si sono incontrati a Roma", "Si sono incontrati ad Alessandria d'Egitto durante un banchetto"],
                 correct: 0
+            },
+            {
+                question: "In quale battaglia Marco Antonio sconfisse i congiurati che avevano ucciso Cesare?",
+                answers: ["Battaglia di Modena", "Battaglia di Filippi", "Battaglia di Perugia", "Battaglia di Azio"],
+                correct: 1
+            },
+            {
+                question: "A chi fa Marco Antonio un elogio durante il suo funerale?",
+                answers: ["Bruto", "Ottaviano", "Cesare", "Cleopatra"],
+                correct: 2
             },
             {
                 question: "Quale triumvirato formò Marco Antonio?",
                 answers: ["Primo Triumvirato", "Secondo Triumvirato", "Triumvirato Consolare", "Triumvirato Militare"],
                 correct: 1
-            },
-            {
-                question: "Con chi condivise il potere nel Secondo Triumvirato?",
-                answers: ["Cesare e Pompeo", "Ottaviano e Lepido", "Crasso e Cesare", "Bruto e Cassio"],
-                correct: 1
-            },
-            {
-                question: "In quale battaglia famosa morì Marco Antonio?",
-                answers: ["Battaglia di Farsalo", "Battaglia di Filippi", "Battaglia di Azio", "Battaglia di Alesia"],
-                correct: 2
-            },
-            {
-                question: "Chi era Cleopatra?",
-                answers: ["Regina d'Egitto", "Regina di Roma", "Regina di Cartagine", "Regina di Persia"],
-                correct: 0
-            },
-            {
-                question: "Quante volte si sposò Marco Antonio?",
-                answers: ["2 volte", "3 volte", "4 volte", "5 volte"],
-                correct: 3
             },
             {
                 question: "Chi sconfisse Marco Antonio nella battaglia di Azio?",
@@ -81,7 +81,7 @@
         ];
 
         const teams = ['Squadra 1', 'Squadra 2', 'Squadra 3'];
-        const teamColors = ['#8B0000', '#800080', '#000000']; // Rosso porpora, Porpora, Nero
+        const teamColors = ['#8B0000', '#800080', '#000000'];
 
         let gameState = {
             state: 'start',
@@ -97,7 +97,7 @@
             
             if (gameState.state === 'start') {
                 app.innerHTML = `
-                    <div class="min-h-screen bg-gradient-to-b from-red-950 to-red-900 flex items-center justify-center p-4">
+                    <div class="min-h-screen bg-gradient-to-b from-amber-700 to-amber-800 flex items-center justify-center p-4">
                         <div class="bg-stone-100 rounded-lg shadow-2xl p-8 max-w-md w-full text-center border-4 border-purple-900">
                             <h1 class="text-4xl font-bold text-red-950 mb-4">🏛️ La Gara di Marco Antonio</h1>
                             <p class="text-gray-800 mb-6">Tre squadre si sfidano rispondendo a domande sul grande generale romano, marito di Cleopatra!</p>
@@ -115,7 +115,7 @@
                 ].sort((a, b) => b.score - a.score);
 
                 app.innerHTML = `
-                    <div class="min-h-screen bg-gradient-to-b from-purple-950 to-purple-900 flex items-center justify-center p-4">
+                    <div class="min-h-screen bg-gradient-to-b from-amber-700 to-amber-800 flex items-center justify-center p-4">
                         <div class="bg-stone-100 rounded-lg shadow-2xl p-8 max-w-2xl w-full border-4 border-red-900">
                             <h1 class="text-4xl font-bold text-purple-950 mb-8 text-center">🏆 Risultati Finali</h1>
                             
